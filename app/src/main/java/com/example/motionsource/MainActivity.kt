@@ -1,18 +1,43 @@
 package com.example.motionsource
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.motionsource.ui.theme.MotionSourceTheme
+import java.net.NetworkInterface
+import java.net.SocketException
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,14 +45,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MotionSourceTheme {
-                Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
-                    Greeting(
-                        name = stringResource(R.string.user_name),
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                MotionSourceUi()
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MotionSourcePreview() {
+    MotionSourceTheme {
+        MotionSourceUi()
     }
 }
 
@@ -35,19 +63,130 @@ class MainActivity : ComponentActivity() {
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
         text = "Hello $name!",
-        modifier = modifier
+        modifier = modifier,
+        color = Color.White
     )
 }
 
-@Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
-    MotionSourceTheme {
-        Scaffold( modifier = Modifier.fillMaxSize() ) { innerPadding ->
+fun DropdownMenuExample(
+    items: List<String>,
+    selectedItem: String,
+    onItemSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { expanded = !expanded }, modifier = Modifier.fillMaxWidth()) {
+            Text(text = selectedItem.ifEmpty { "Select IP Address" })
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            items.forEach { item ->
+                DropdownMenuItem(
+                    text = { Text(item) },
+                    onClick = {
+                        onItemSelected(item)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+fun getAvailableIpAddresses(): List<String> {
+    val ipAddresses = mutableListOf<String>()
+    try {
+        val networkInterfaces = NetworkInterface.getNetworkInterfaces()
+        while (networkInterfaces.hasMoreElements()) {
+            val networkInterface = networkInterfaces.nextElement()
+
+            // Check if the interface is up, not a loopback, and not a virtual interface
+            if (networkInterface.isUp && !networkInterface.isLoopback && !networkInterface.isVirtual) {
+                val inetAddresses = networkInterface.inetAddresses
+                while (inetAddresses.hasMoreElements()) {
+                    val inetAddress = inetAddresses.nextElement()
+
+                    // Check if the address is not a loopback and is an IPv4 address
+                    if (!inetAddress.isLoopbackAddress && inetAddress.address.size == 4) {
+                        val hostAddress = inetAddress.hostAddress
+                        if (hostAddress != null) {
+                            ipAddresses.add(hostAddress)
+                        }
+                    }
+                }
+            }
+        }
+    } catch (e: SocketException) {
+        Log.e("getAvailableIpAddresses", "Error getting network interfaces: ${e.message}", e)
+    } catch (e: SecurityException) {
+        Log.e("getAvailableIpAddresses", "Security error getting IP addresses: ${e.message}", e)
+    }
+    return ipAddresses.distinct()
+}
+
+@Composable
+fun MotionSourceUi() {
+    var selectedIp by remember { mutableStateOf("") }
+    var port by remember { mutableStateOf("") }
+    var isSending by remember { mutableStateOf(false) }
+
+    val availableIps = getAvailableIpAddresses()
+
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.primary,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 100.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Greeting(
                 name = stringResource(R.string.user_name),
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(all = 24.dp)
             )
+            Text("Select IP Address:")
+            DropdownMenuExample(
+                items = availableIps,
+                selectedItem = selectedIp,
+                onItemSelected = { selectedIp = it }
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Enter Port:")
+            BasicTextField(
+                value = port,
+                onValueChange = { port = it },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { isSending = true },
+                enabled = selectedIp.isNotEmpty() && port.isNotEmpty()
+            ) {
+                Text("Start Sending Data")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (isSending) {
+                RotationDisplay(
+                    context = LocalContext.current,
+                    serverIp = selectedIp,
+                    serverPort = port.toInt()
+                )
+            }
         }
     }
 }
