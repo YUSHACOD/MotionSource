@@ -11,18 +11,10 @@ import com.example.motionsource.sensors.deviceRotationValues
 @Composable
 fun RotationDisplay(
     context: Context,
-    serverIp: String,
-    serverPort: Int
+    //serverIp: String,
+    //serverPort: Int
 ) {
-    if (context == null) {
-        Text(
-            text = "Preview context",
-            style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
-        )
-        return
-    }
-
-    val (azimuth, pitch, roll) = deviceRotationValues(context, serverIp, serverPort)
+    val (azimuth, pitch, roll) = deviceRotationValues(context/*, serverIp, serverPort*/)
 
     Text(
         text = "Azimuth (X): $azimuth\nPitch (Y): $pitch\nRoll (Z): $roll",

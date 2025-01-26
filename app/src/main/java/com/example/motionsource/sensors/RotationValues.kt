@@ -10,14 +10,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun deviceRotationValues(
     context: Context,
-    serverIp: String,
-    serverPort: Int
+    //serverIp: String,
+    //serverPort: Int
 ): Triple<Float, Float, Float> {
     val sensor = remember { DeviceRotationSensor(context) }
-    val udpSender = remember { UdpSender(serverIp, serverPort) }
+    // val udpSender = remember { UdpSender(serverIp, serverPort) }
     val rotationValues = sensor.rotationValues.value
 
     DisposableEffect(Unit) {
+        /*
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         val job = coroutineScope.launch {
             while (true) {
@@ -27,11 +28,12 @@ fun deviceRotationValues(
                 kotlinx.coroutines.delay(100) // Send every 100ms
             }
         }
+         */
 
         onDispose {
-            job.cancel()
+            //job.cancel()
             sensor.unregisterListener()
-            udpSender.close()
+            //udpSender.close()
         }
     }
 

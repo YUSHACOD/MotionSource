@@ -1,6 +1,7 @@
 package com.example.motionsource
 
 import android.os.Bundle
+import android.text.BoringLayout
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,19 +24,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.motionsource.udpsender.UdpSender
 import com.example.motionsource.ui.theme.MotionSourceTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import java.net.NetworkInterface
 import java.net.SocketException
 
@@ -68,6 +75,7 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
+/*
 @Composable
 fun DropdownMenuExample(
     items: List<String>,
@@ -93,7 +101,9 @@ fun DropdownMenuExample(
         }
     }
 }
+ */
 
+/*
 fun getAvailableIpAddresses(): List<String> {
     val ipAddresses = mutableListOf<String>()
     try {
@@ -124,14 +134,26 @@ fun getAvailableIpAddresses(): List<String> {
     }
     return ipAddresses.distinct()
 }
+ */
+
+@Composable
+fun ButtonStateSwitch(isSending: Boolean) {
+    if (isSending) {
+        Text("Stop Sending Data")
+    } else {
+        Text("Start Sending Data")
+    }
+}
 
 @Composable
 fun MotionSourceUi() {
-    var selectedIp by remember { mutableStateOf("") }
+    //var selectedIp by remember { mutableStateOf("") }
+    var ip by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
+    var udpSender: UdpSender? = null
 
-    val availableIps = getAvailableIpAddresses()
+    //val availableIps = getAvailableIpAddresses()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -148,11 +170,26 @@ fun MotionSourceUi() {
                 name = stringResource(R.string.user_name),
                 modifier = Modifier.padding(all = 24.dp)
             )
+
+            /*
             Text("Select IP Address:")
             DropdownMenuExample(
                 items = availableIps,
                 selectedItem = selectedIp,
                 onItemSelected = { selectedIp = it }
+            )
+             */
+
+            Text("Enter Ip:")
+            BasicTextField(
+                value = ip,
+                onValueChange = { ip= it },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(8.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -172,20 +209,57 @@ fun MotionSourceUi() {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
-                onClick = { isSending = true },
-                enabled = selectedIp.isNotEmpty() && port.isNotEmpty()
+                onClick = {
+                    isSending = !isSending
+                    println("Button is Clicked bitch!!")
+                          },
+                //enabled = selectedIp.isNotEmpty() && port.isNotEmpty()
+                enabled = ip.isNotEmpty() && port.isNotEmpty()
             ) {
-                Text("Start Sending Data")
+                ButtonStateSwitch(isSending)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            /*
+            RotationDisplay(
+                context = LocalContext.current,
+                //serverIp = selectedIp,
+                //serverIp = ip,
+                //serverPort = port.toInt()
+            )
+            */
+
+            /*
             if (isSending) {
-                RotationDisplay(
-                    context = LocalContext.current,
-                    serverIp = selectedIp,
-                    serverPort = port.toInt()
-                )
+                udpSender = UdpSender(ip, port.toInt())
+                while (true) {
+                    udpSender!!.sendData("hello from motion source")
+                }
+            } else {
+                udpSender?.close()
+            }
+            */
+
+            if (isSending) {
+                LaunchedEffect(Unit) {
+                    udpSender = UdpSender(ip, port.toInt())
+                    withContext(Dispatchers.IO) {
+                        try {
+                            while (isSending) {
+                                udpSender!!.sendData("hello from motion source")
+                                println("Sending data")
+                                delay(50) // Sending data every second
+                            }
+                        } catch (e: Exception) {
+                            println("Error: ${e.message}")
+                        } finally {
+                            udpSender?.close()
+                        }
+                    }
+                }
+            } else {
+                udpSender?.close()
             }
         }
     }
