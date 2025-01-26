@@ -10,30 +10,27 @@ import kotlinx.coroutines.launch
 @Composable
 fun deviceRotationValues(
     context: Context,
-    //serverIp: String,
-    //serverPort: Int
+    serverIp: String,
+    serverPort: Int
 ): Triple<Float, Float, Float> {
     val sensor = remember { DeviceRotationSensor(context) }
-    // val udpSender = remember { UdpSender(serverIp, serverPort) }
-    val rotationValues = sensor.rotationValues.value
+    val udpSender = remember { UdpSender(serverIp, serverPort) }
+    val rotationValues by sensor.rotationValues.collectAsState() // Dynamically observe changes
 
     DisposableEffect(Unit) {
-        /*
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         val job = coroutineScope.launch {
-            while (true) {
-                val (azimuth, pitch, roll) = rotationValues
-                val message = "Azimuth: $azimuth, Pitch: $pitch, Roll: $roll"
+            sensor.rotationValues.collect { (azimuth, pitch, roll) ->
+                val message = "Azimuth(x): $azimuth, Pitch(y): $pitch, Roll(z): $roll"
                 udpSender.sendData(message)
-                kotlinx.coroutines.delay(100) // Send every 100ms
+                kotlinx.coroutines.delay(50) // Send every 100ms
             }
         }
-         */
 
         onDispose {
-            //job.cancel()
+            job.cancel()
             sensor.unregisterListener()
-            //udpSender.close()
+            udpSender.close()
         }
     }
 

@@ -1,14 +1,11 @@
 package com.example.motionsource
 
 import android.os.Bundle
-import android.text.BoringLayout
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,33 +15,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.motionsource.udpsender.UdpSender
 import com.example.motionsource.ui.theme.MotionSourceTheme
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
-import java.net.NetworkInterface
-import java.net.SocketException
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -151,8 +138,8 @@ fun MotionSourceUi() {
     var ip by remember { mutableStateOf("") }
     var port by remember { mutableStateOf("") }
     var isSending by remember { mutableStateOf(false) }
-    var udpSender: UdpSender? = null
 
+    //val udpSender: UdpSender? = null
     //val availableIps = getAvailableIpAddresses()
 
     Surface(
@@ -221,26 +208,18 @@ fun MotionSourceUi() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            /*
-            RotationDisplay(
-                context = LocalContext.current,
-                //serverIp = selectedIp,
-                //serverIp = ip,
-                //serverPort = port.toInt()
-            )
-            */
-
-            /*
             if (isSending) {
-                udpSender = UdpSender(ip, port.toInt())
-                while (true) {
-                    udpSender!!.sendData("hello from motion source")
-                }
-            } else {
-                udpSender?.close()
+                RotationDisplay(
+                    context = LocalContext.current,
+                    //serverIp = selectedIp,
+                    serverIp = ip,
+                    serverPort = port.toInt()
+                )
             }
-            */
 
+
+
+            /*
             if (isSending) {
                 LaunchedEffect(Unit) {
                     udpSender = UdpSender(ip, port.toInt())
@@ -261,6 +240,7 @@ fun MotionSourceUi() {
             } else {
                 udpSender?.close()
             }
+            */
         }
     }
 }

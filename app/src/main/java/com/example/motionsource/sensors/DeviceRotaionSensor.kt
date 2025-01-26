@@ -4,8 +4,9 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.compose.runtime.*
 import android.content.Context
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * A class that handles device rotation sensor data and provides azimuth (X), pitch (Y), and roll (Z) values.
@@ -15,8 +16,8 @@ class DeviceRotationSensor(context: Context) {
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val rotationVectorSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
-    private val _rotationValues = mutableStateOf(Triple(0f, 0f, 0f))
-    val rotationValues: State<Triple<Float, Float, Float>> get() = _rotationValues
+    private val _rotationValues = MutableStateFlow(Triple(0f, 0f, 0f))
+    val rotationValues: StateFlow<Triple<Float, Float, Float>> get() = _rotationValues
 
     private val sensorEventListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent?) {

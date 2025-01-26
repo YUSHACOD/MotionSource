@@ -1,6 +1,5 @@
 package com.example.motionsource.udpsender
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.DatagramPacket
@@ -18,12 +17,12 @@ class UdpSender(
         try {
             socket = DatagramSocket()
         } catch (e: java.net.SocketException) {
-            println("hey bitch what the fuck is this socket crash: " + e.printStackTrace().toString())
+            println("Socket creation crash: " + e.printStackTrace().toString())
         }
     }
 
-    /*suspend*/ fun sendData(message: String) {
-        //withContext(Dispatchers.IO) {
+    suspend fun sendData(message: String) {
+        withContext(Dispatchers.IO) {
             try {
                 val buffer = message.toByteArray()
                 val packet = DatagramPacket(
@@ -34,11 +33,12 @@ class UdpSender(
                 )
                 socket?.send(packet)
             } catch (e: Exception) {
-                Log.e("UdpSender", "Error sending data: ${e.printStackTrace().toString()}")
+                println("Error sending data: ${e.printStackTrace()}")
+                println("Ending Process")
                 socket?.close()
                 exitProcess(0)
             }
-        //}
+        }
     }
 
     fun close() {
