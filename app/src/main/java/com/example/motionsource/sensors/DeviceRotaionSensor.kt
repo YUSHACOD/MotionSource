@@ -43,6 +43,7 @@ class DeviceRotationSensor(context: Context) {
 
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
             // Handle accuracy changes if needed
+            println("accuracy changed for sensor: $accuracy")
         }
     }
 

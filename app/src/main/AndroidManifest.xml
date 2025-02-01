@@ -10,16 +10,17 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/motionsourceico"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/motionsourceico"
         android:supportsRtl="true"
         android:theme="@style/Theme.MotionSource"
         tools:targetApi="31" >
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.MotionSource" >
+            android:theme="@style/Theme.MotionSource"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
