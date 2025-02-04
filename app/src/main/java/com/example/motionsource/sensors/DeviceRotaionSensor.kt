@@ -32,9 +32,9 @@ class DeviceRotationSensor(context: Context) {
                     // Compute orientation angles (Azimuth, Pitch, Roll)
                     SensorManager.getOrientation(rotationMatrix, orientationAngles)
 
-                    val azimuth = Math.toDegrees(orientationAngles[0].toDouble()).toFloat()
-                    val pitch = Math.toDegrees(orientationAngles[1].toDouble()).toFloat()
-                    val roll = Math.toDegrees(orientationAngles[2].toDouble()).toFloat()
+                    val azimuth = orientationAngles[0]
+                    val pitch = orientationAngles[1]
+                    val roll = orientationAngles[2]
 
                     _rotationValues.value = Triple(azimuth, pitch, roll)
                 }
@@ -49,7 +49,7 @@ class DeviceRotationSensor(context: Context) {
 
     init {
         rotationVectorSensor?.let {
-            sensorManager.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_UI)
+            sensorManager.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_FASTEST)
         }
     }
 

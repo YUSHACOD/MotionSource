@@ -1,5 +1,6 @@
 package com.example.motionsource
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,8 +22,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,7 +36,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
+import com.example.motionsource.sensors.DeviceRotationSensor
+import com.example.motionsource.sensors.pauseOrientationAngleService
+import com.example.motionsource.sensors.resumeOrientationAngleService
+import com.example.motionsource.sensors.startOrientationAngleService
+import com.example.motionsource.sensors.stopOrientationAngleService
 import com.example.motionsource.ui.theme.MotionSourceTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,19 +68,55 @@ fun MotionSourcePreview() {
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
+fun Title(name: String, modifier: Modifier = Modifier) {
     Text(
-        text = "Hello $name!",
+        text = name,
         modifier = modifier,
+        fontSize = MaterialTheme.typography.headlineLarge.fontSize,
+        fontWeight = MaterialTheme.typography.headlineLarge.fontWeight,
         color = MaterialTheme.colorScheme.onSurface,
     )
 }
 
 @Composable
+fun RotationDisplay(context: Context) {
+    val sensor = remember { DeviceRotationSensor(context) }
+    val rotationValues by sensor.rotationValues.collectAsState()
+    val (azimuth, pitch, roll) = rotationValues
+
+    Text(
+        text = String.format(Locale.US, "X\t:\t%+3.6f\nY\t:\t%+3.6f\nZ\t:\t%+3.6f", azimuth, pitch, roll),
+        style = MaterialTheme.typography.bodyLarge
+    )
+}
+
+@Composable
+fun ObserveAppLifecycle(owner: LifecycleOwner, onAppExit: () -> Unit) {
+    val lifecycle = owner.lifecycle
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_DESTROY) {
+                // App is going to the background; stop service if needed
+                onAppExit()
+            }
+        }
+        lifecycle.addObserver(observer)
+
+        onDispose {
+            lifecycle.removeObserver(observer)
+        }
+    }
+}
+
+@Composable
 fun MotionSourceUi() {
     var ip by rememberSaveable { mutableStateOf("") }
-    var port by rememberSaveable { mutableStateOf("42069") }
-    var isSending by rememberSaveable { mutableStateOf(false) }
+    var port by rememberSaveable { mutableStateOf("") }
+    var isServicePaused by rememberSaveable { mutableStateOf(true) }
+    var isServiceCreated by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    ObserveAppLifecycle(owner = context as LifecycleOwner) { stopOrientationAngleService(context) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -80,7 +129,7 @@ fun MotionSourceUi() {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Greeting(
+            Title(
                 name = stringResource(R.string.user_name),
                 modifier = Modifier
                     .padding(all = 24.dp)
@@ -104,15 +153,9 @@ fun MotionSourceUi() {
                 Spacer(modifier = Modifier.width(16.dp))
 
                 OutlinedTextField(
-                    value = "",
+                    value = port,
                     onValueChange = { port = it },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    placeholder = {
-                        Text(
-                            text = "42069",
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    },
                     label = {
                         Text(
                             text = "Enter Port",
@@ -126,8 +169,19 @@ fun MotionSourceUi() {
 
             Button(
                 onClick = {
-                    isSending = !isSending
-                    println("Button is Clicked bitch!!")
+                    if (!isServiceCreated) {
+                        startOrientationAngleService(context, ip, port)
+                        isServiceCreated = true
+                        println("Service Created After")
+                    }
+
+                    if (isServicePaused) {
+                        resumeOrientationAngleService(context)
+                        isServicePaused = false
+                    } else {
+                        pauseOrientationAngleService(context)
+                        isServicePaused = true
+                    }
                           },
                 shape = RoundedCornerShape(10.dp),
                 enabled = ip.isNotEmpty() && port.isNotEmpty(),
@@ -140,21 +194,17 @@ fun MotionSourceUi() {
                 modifier = Modifier
                     .width(200.dp)
             ) {
-                if (isSending) {
-                    Text("Stop Server")
-                } else {
+                if (isServicePaused) {
                     Text("Start Server")
+                } else {
+                    Text("Stop Server")
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (isSending) {
-                RotationDisplay(
-                    context = LocalContext.current,
-                    serverIp = ip,
-                    serverPort = port.toInt()
-                )
+            if (!isServicePaused) {
+                RotationDisplay(context)
             }
         }
     }

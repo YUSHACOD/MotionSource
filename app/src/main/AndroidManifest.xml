@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
 
     <application
         android:allowBackup="true"
@@ -16,11 +18,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MotionSource"
         tools:targetApi="31" >
+        <service
+            android:name=".sensors.OrientationAngleService"
+            android:foregroundServiceType="specialUse">
+        </service>
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MotionSource"
-            tools:ignore="DiscouragedApi,LockedOrientationActivity">
+            tools:ignore="DiscouragedApi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
