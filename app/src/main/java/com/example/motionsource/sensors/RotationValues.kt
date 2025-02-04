@@ -27,7 +27,7 @@ fun deviceRotationValues(
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         val job = coroutineScope.launch {
             sensor.rotationValues.collect { (azimuth, pitch, roll) ->
-                val message = String.format("Azimuth(X): %+3.6f Pitch(Y): %+3.6f Roll(Z): %+3.6f", azimuth, pitch, roll)
+                val message = String.format("%+3.6f,%+3.6f,%+3.6f", azimuth, pitch, roll)
                 udpSender.sendData(message)
             }
         }

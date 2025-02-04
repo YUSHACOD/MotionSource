@@ -57,9 +57,11 @@ fun MotionSourcePreview() {
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
-        text = "Hello $name!",
+        text = name,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.onSurface,
+        fontSize = MaterialTheme.typography.headlineMedium.fontSize,
+        fontStyle =  MaterialTheme.typography.headlineMedium.fontStyle,
+        color = MaterialTheme.colorScheme.onSurface
     )
 }
 
@@ -125,10 +127,7 @@ fun MotionSourceUi() {
             Spacer(modifier = Modifier.height(10.dp))
 
             Button(
-                onClick = {
-                    isSending = !isSending
-                    println("Button is Clicked bitch!!")
-                          },
+                onClick = { isSending = !isSending },
                 shape = RoundedCornerShape(10.dp),
                 enabled = ip.isNotEmpty() && port.isNotEmpty(),
                 colors = ButtonColors(

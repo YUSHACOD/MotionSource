@@ -19,7 +19,7 @@ fun RotationDisplay(
     val (azimuth, pitch, roll) = deviceRotationValues(context, serverIp, serverPort)
 
     Text(
-        text = String.format("Azimuth(X)\t:\t%+3.6f\nPitch(Y)\t:\t%+3.6f\nRoll(Z)\t:\t%+3.6f", azimuth, pitch, roll),
+        text = String.format("X: %+3.6f\nY: %+3.6f\nZ: %+3.6f", azimuth, pitch, roll),
         style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
     )
 }
