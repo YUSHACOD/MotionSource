@@ -4,12 +4,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import androidx.core.content.ContextCompat
 import com.example.motionsource.udpsender.UdpSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -35,31 +33,40 @@ class OrientationAngleService: Service() {
     private var isCreated = false
 
     override fun onCreate() {
-        super.onCreate()
-        try {
-        } catch (e: Exception) {
-            println("onCreate exception: " + e.message + e.stackTrace)
+        if (!isCreated) {
+            super.onCreate()
+            try {
+            } catch (e: Exception) {
+                println("onCreate exception: " + e.message + e.stackTrace)
+            }
         }
-        println("Service Created: onCreate")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                // Read IP and Port from Intent extras
-                println("Action Start Called")
-                this.serverIp = intent.getStringExtra(EXTRA_IP) ?: "0.0.0.0"
-                this.serverPort = intent.getIntExtra(EXTRA_PORT, 42069)
-                this.context = this
+                if (!isCreated) {
+                    println("Action Start Called")
+                    this.serverIp = intent.getStringExtra(EXTRA_IP) ?: "0.0.0.0"
+                    this.serverPort = intent.getIntExtra(EXTRA_PORT, 42069)
+                    this.context = this
+                    isPaused = false
+                }
+            }
+            ACTION_PAUSE -> {
+                println("Action Pause")
+                isPaused = true
+            }
+            ACTION_RESUME -> {
+                println("Action Resume")
                 isPaused = false
             }
-            ACTION_PAUSE -> pauseSendingData()
-            ACTION_RESUME -> resumeSendingData()
             ACTION_STOP -> {
                 sensor.unregisterListener()
                 serviceJob?.cancel()
                 udpSender.close()
                 stopSelf()
+                println("Action stop done")
             }
         }
 
@@ -91,25 +98,16 @@ class OrientationAngleService: Service() {
         }
     }
 
-    private fun pauseSendingData() {
-        isPaused = true
-    }
-
-    private fun resumeSendingData() {
-        if (isPaused) {
-            isPaused = false
-        }
-    }
-
     private suspend fun sendRotationData() {
-
         sensor.rotationValues.collect { (azimuth, pitch, roll) ->
             val message = String.format(Locale.US, "%+1.6f,%+1.6f,%+1.6f", azimuth, pitch, roll)
 
-            udpSender.sendData(message)
+            if (!isPaused) {
+                udpSender.sendData(message)
+            }
 
             // Add a delay to control the frequency (optional)
-            // delay()
+            // delay(10)
         }
     }
 
@@ -143,8 +141,7 @@ fun pauseOrientationAngleService(context: Context) {
         this.action = OrientationAngleService.ACTION_PAUSE
     }
 
-    ContextCompat.startForegroundService(context, serviceIntent)
-    println("Action Pause Done")
+    context.startService(serviceIntent)
 }
 
 fun resumeOrientationAngleService(context: Context) {
@@ -152,8 +149,7 @@ fun resumeOrientationAngleService(context: Context) {
         this.action = OrientationAngleService.ACTION_RESUME
     }
 
-    ContextCompat.startForegroundService(context, serviceIntent)
-    println("Action resume Done")
+    context.startService(serviceIntent)
 }
 
 fun stopOrientationAngleService(context: Context) {
@@ -161,6 +157,5 @@ fun stopOrientationAngleService(context: Context) {
         this.action = OrientationAngleService.ACTION_STOP
     }
 
-    context.stopService(serviceIntent)
-    println("Action Stop Done")
+    context.startService(serviceIntent)
 }
