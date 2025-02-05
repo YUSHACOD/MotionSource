@@ -70,6 +70,7 @@ fun MotionSourceUi() {
     var ip by rememberSaveable { mutableStateOf("") }
     var port by rememberSaveable { mutableStateOf("42069") }
     var isSending by rememberSaveable { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -150,7 +151,7 @@ fun MotionSourceUi() {
 
             if (isSending) {
                 RotationDisplay(
-                    context = LocalContext.current,
+                    context = context,
                     serverIp = ip,
                     serverPort = port.toInt()
                 )

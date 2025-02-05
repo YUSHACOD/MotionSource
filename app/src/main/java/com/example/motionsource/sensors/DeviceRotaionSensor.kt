@@ -49,7 +49,7 @@ class DeviceRotationSensor(context: Context) {
 
     init {
         rotationVectorSensor?.let {
-            sensorManager.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_FASTEST)
+            sensorManager.registerListener(sensorEventListener, it, SensorManager.SENSOR_DELAY_GAME)
         }
     }
 

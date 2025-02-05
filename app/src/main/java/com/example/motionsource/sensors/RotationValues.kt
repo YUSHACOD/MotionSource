@@ -1,6 +1,5 @@
 package com.example.motionsource.sensors
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -11,8 +10,8 @@ import com.example.motionsource.udpsender.UdpSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Locale
 
-@SuppressLint("DefaultLocale")
 @Composable
 fun deviceRotationValues(
     context: Context,
@@ -21,13 +20,13 @@ fun deviceRotationValues(
 ): Triple<Float, Float, Float> {
     val sensor = remember { DeviceRotationSensor(context) }
     val udpSender = remember { UdpSender(serverIp, serverPort) }
-    val rotationValues by sensor.rotationValues.collectAsState() // Dynamically observe changes
+    val rotationValues by sensor.rotationValues.collectAsState()
 
     DisposableEffect(Unit) {
         val coroutineScope = CoroutineScope(Dispatchers.IO)
         val job = coroutineScope.launch {
             sensor.rotationValues.collect { (azimuth, pitch, roll) ->
-                val message = String.format("%+3.6f,%+3.6f,%+3.6f", azimuth, pitch, roll)
+                val message = String.format(Locale.US, "%+3.6f,%+3.6f,%+3.6f", azimuth, pitch, roll)
                 udpSender.sendData(message)
             }
         }

@@ -1,15 +1,11 @@
 package com.example.motionsource
 
-import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.example.motionsource.sensors.deviceRotationValues
+import java.util.Locale
 
-/**
- * A composable that displays the current rotation values (Azimuth, Pitch, Roll).
- */
-@SuppressLint("DefaultLocale")
 @Composable
 fun RotationDisplay(
     context: Context,
@@ -19,7 +15,7 @@ fun RotationDisplay(
     val (azimuth, pitch, roll) = deviceRotationValues(context, serverIp, serverPort)
 
     Text(
-        text = String.format("X: %+3.6f\nY: %+3.6f\nZ: %+3.6f", azimuth, pitch, roll),
+        text = String.format(Locale.US, "X: %+3.6f\nY: %+3.6f\nZ: %+3.6f", azimuth, pitch, roll),
         style = androidx.compose.material3.MaterialTheme.typography.bodyLarge
     )
 }
