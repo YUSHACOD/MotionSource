@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
 
     <application
         android:allowBackup="true"
@@ -19,8 +18,7 @@
         android:theme="@style/Theme.MotionSource"
         tools:targetApi="31" >
         <service
-            android:name=".sensors.OrientationAngleService"
-            android:foregroundServiceType="specialUse">
+            android:name=".sensors.OrientationAngleService">
         </service>
         <activity
             android:name=".MainActivity"

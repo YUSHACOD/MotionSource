@@ -1,12 +1,10 @@
 package com.example.motionsource.sensors
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.example.motionsource.udpsender.UdpSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,7 +25,6 @@ class OrientationAngleService: Service() {
         const val EXTRA_PORT = "EXTRA_PORT"
     }
 
-    private val channelId = "ForegroundServiceChannel"
     private lateinit var context: Context
     private lateinit var serverIp: String
     private var serverPort: Int = 0
@@ -40,7 +37,6 @@ class OrientationAngleService: Service() {
     override fun onCreate() {
         super.onCreate()
         try {
-            createNotificationChannel()
         } catch (e: Exception) {
             println("onCreate exception: " + e.message + e.stackTrace)
         }
@@ -56,7 +52,6 @@ class OrientationAngleService: Service() {
                 this.serverPort = intent.getIntExtra(EXTRA_PORT, 42069)
                 this.context = this
                 isPaused = false
-                startSendingData()
             }
             ACTION_PAUSE -> pauseSendingData()
             ACTION_RESUME -> resumeSendingData()
@@ -68,14 +63,8 @@ class OrientationAngleService: Service() {
             }
         }
 
-        val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Foreground Service")
-            .setContentText("Your service is running")
-            .setSmallIcon(android.R.drawable.ic_notification_overlay)
-            .build()
-
         try {
-            startForeground(1, notification)
+            startSendingData()
         } catch (e: Exception) {
             println("Starting Foreground : " + e.message + e.stackTrace)
         }
@@ -120,24 +109,13 @@ class OrientationAngleService: Service() {
             udpSender.sendData(message)
 
             // Add a delay to control the frequency (optional)
-            delay(100) // Send data every 100 milliseconds
+            // delay()
         }
     }
 
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
-    }
-
-    private fun createNotificationChannel() {
-        val serviceChannel = NotificationChannel(
-            channelId,
-            "Foreground Service Channel",
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-
-        val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(serviceChannel)
     }
 }
 
@@ -154,7 +132,7 @@ fun startOrientationAngleService(context: Context, ip: String, port: String) {
         }
 
     try {
-        context.stopService(serviceIntent)
+        context.startService(serviceIntent)
     } catch (e: Exception) {
         println("startForegroundService exception: " + e.message + e.stackTrace)
     }
@@ -165,7 +143,7 @@ fun pauseOrientationAngleService(context: Context) {
         this.action = OrientationAngleService.ACTION_PAUSE
     }
 
-    context.stopService(serviceIntent)
+    ContextCompat.startForegroundService(context, serviceIntent)
     println("Action Pause Done")
 }
 
@@ -174,7 +152,7 @@ fun resumeOrientationAngleService(context: Context) {
         this.action = OrientationAngleService.ACTION_RESUME
     }
 
-    context.stopService(serviceIntent)
+    ContextCompat.startForegroundService(context, serviceIntent)
     println("Action resume Done")
 }
 
