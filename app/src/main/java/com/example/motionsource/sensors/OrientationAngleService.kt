@@ -1,9 +1,14 @@
 package com.example.motionsource.sensors
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
+import com.example.motionsource.R
 import com.example.motionsource.udpsender.UdpSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +44,8 @@ class OrientationAngleService: Service() {
             } catch (e: Exception) {
                 println("onCreate exception: " + e.message + e.stackTrace)
             }
+            createNotificationChannel()
+            startForeground(1, buildNotification())
         }
     }
 
@@ -100,7 +107,7 @@ class OrientationAngleService: Service() {
 
     private suspend fun sendRotationData() {
         sensor.rotationValues.collect { (azimuth, pitch, roll) ->
-            val message = String.format(Locale.US, "%+1.6f,%+1.6f,%+1.6f", azimuth, pitch, roll)
+            val message = String.format(Locale.US, "%+1.3f,%+1.3f,%+1.3f", azimuth, pitch, roll)
 
             if (!isPaused) {
                 udpSender.sendData(message)
@@ -109,6 +116,24 @@ class OrientationAngleService: Service() {
             // Add a delay to control the frequency (optional)
             // delay(10)
         }
+    }
+
+    private fun buildNotification(): Notification {
+        return NotificationCompat.Builder(this, "ORIENTATION_SERVICE_CHANNEL")
+            .setContentTitle("Motion Source")
+            .setContentText("Orientation service is running")
+            .setSmallIcon(R.mipmap.motionsourceico)
+            .build()
+    }
+
+    private fun createNotificationChannel() {
+        val serviceChannel = NotificationChannel(
+            "ORIENTATION_SERVICE_CHANNEL",
+            "Orientation service Channel",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        val manager = getSystemService(NotificationManager::class.java)
+        manager.createNotificationChannel(serviceChannel)
     }
 
 
