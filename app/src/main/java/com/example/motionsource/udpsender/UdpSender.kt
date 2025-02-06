@@ -21,10 +21,9 @@ class UdpSender(
         }
     }
 
-    suspend fun sendData(message: String) {
+    suspend fun sendData(buffer: ByteArray) {
         withContext(Dispatchers.IO) {
             try {
-                val buffer = message.toByteArray()
                 val packet = DatagramPacket(
                     buffer,
                     buffer.size,

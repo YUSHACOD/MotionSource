@@ -14,7 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.util.Locale
+import java.nio.ByteBuffer
 
 class OrientationAngleService: Service() {
 
@@ -107,10 +107,13 @@ class OrientationAngleService: Service() {
 
     private suspend fun sendRotationData() {
         sensor.rotationValues.collect { (azimuth, pitch, roll) ->
-            val message = String.format(Locale.US, "%+1.3f,%+1.3f,%+1.3f", azimuth, pitch, roll)
+            val buffer = ByteBuffer.allocate(12)
+            buffer.putFloat(azimuth)
+            buffer.putFloat(pitch)
+            buffer.putFloat(roll)
 
             if (!isPaused) {
-                udpSender.sendData(message)
+                udpSender.sendData(buffer.array())
             }
 
             // Add a delay to control the frequency (optional)

@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="MotionSourcePreview">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-01-27T16:44:09.853748900Z">
+        <DropdownSelection timestamp="2025-02-06T14:15:47.078901800Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\91724\.android\avd\reversing_api28_pie9_arm.avd" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.137.57:38769;connection=370ad87c" />
             </handle>
           </Target>
         </DropdownSelection>
