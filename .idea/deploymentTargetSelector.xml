@@ -15,10 +15,10 @@
       </SelectionState>
       <SelectionState runConfigName="MotionSourcePreview">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-02-06T14:15:47.078901800Z">
+        <DropdownSelection timestamp="2025-02-08T13:36:26.248370Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="Default" identifier="serial=192.168.137.57:38769;connection=370ad87c" />
+              <DeviceId pluginId="Default" identifier="serial=192.168.137.57:34619;connection=ed963156" />
             </handle>
           </Target>
         </DropdownSelection>

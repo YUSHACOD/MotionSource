@@ -1,4 +1,4 @@
-package com.example.motionsource.sensors
+package com.example.motionsource.services
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -9,10 +9,12 @@ import android.content.Intent
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.motionsource.R
+import com.example.motionsource.sensors.DeviceRotationSensor
 import com.example.motionsource.udpsender.UdpSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.nio.ByteBuffer
 
@@ -36,6 +38,7 @@ class OrientationAngleService: Service() {
     private var serviceJob: Job? = null
     private var isPaused = true
     private var isCreated = false
+//    private var isConnected = false
 
     override fun onCreate() {
         if (!isCreated) {
@@ -100,24 +103,38 @@ class OrientationAngleService: Service() {
 
         if (serviceJob == null) {
             serviceJob = CoroutineScope(Dispatchers.IO).launch {
+//                connectToPeer()
                 sendRotationData()
             }
         }
     }
 
+//    private suspend fun connectToPeer() {
+//        val message = "connect"
+//        while (!isConnected) {
+//            udpSender.sendData(message.toByteArray())
+//            println(message.toByteArray().toString())
+//            if ("connected" == udpSender.receiveData()) {
+//                isConnected = true
+//            }
+//        }
+//    }
+
     private suspend fun sendRotationData() {
-        sensor.rotationValues.collect { (azimuth, pitch, roll) ->
-            val buffer = ByteBuffer.allocate(12)
-            buffer.putFloat(azimuth)
-            buffer.putFloat(pitch)
-            buffer.putFloat(roll)
-
+        val buffer = ByteBuffer.allocate(12)
+        while (true) {
             if (!isPaused) {
-                udpSender.sendData(buffer.array())
-            }
+                val (azimuth, pitch, roll) = sensor.getOrientationValues()
 
-            // Add a delay to control the frequency (optional)
-            // delay(10)
+                buffer.clear()
+                buffer.putFloat(azimuth)
+                buffer.putFloat(pitch)
+                buffer.putFloat(roll)
+
+                udpSender.sendData(buffer.array())
+
+                delay(1)
+            }
         }
     }
 
@@ -125,7 +142,7 @@ class OrientationAngleService: Service() {
         return NotificationCompat.Builder(this, "ORIENTATION_SERVICE_CHANNEL")
             .setContentTitle("Motion Source")
             .setContentText("Orientation service is running")
-            .setSmallIcon(R.mipmap.motionsourceico)
+            .setSmallIcon(R.mipmap.motion_source_ico)
             .build()
     }
 

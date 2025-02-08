@@ -13,14 +13,14 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@drawable/motionsourceico"
+        android:icon="@drawable/motion_source_ico"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/motionsourceico"
+        android:roundIcon="@drawable/motion_source_ico"
         android:supportsRtl="true"
         android:theme="@style/Theme.MotionSource"
         tools:targetApi="31" >
         <service
-            android:name=".sensors.OrientationAngleService"
+            android:name=".services.OrientationAngleService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="dataSync">

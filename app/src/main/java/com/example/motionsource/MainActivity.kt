@@ -40,10 +40,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.motionsource.sensors.DeviceRotationSensor
-import com.example.motionsource.sensors.pauseOrientationAngleService
-import com.example.motionsource.sensors.resumeOrientationAngleService
-import com.example.motionsource.sensors.startOrientationAngleService
-import com.example.motionsource.sensors.stopOrientationAngleService
+import com.example.motionsource.services.pauseOrientationAngleService
+import com.example.motionsource.services.resumeOrientationAngleService
+import com.example.motionsource.services.startOrientationAngleService
+import com.example.motionsource.services.stopOrientationAngleService
 import com.example.motionsource.ui.theme.MotionSourceTheme
 import java.util.Locale
 
@@ -141,7 +141,8 @@ fun MotionSourceUi() {
                     onValueChange = { ip = it },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                     modifier = Modifier
-                        .width(200.dp),
+                        .width(200.dp)
+                        .padding(start = 20.dp),
                     label = {
                         Text(
                             text = "Enter IP",
@@ -156,6 +157,7 @@ fun MotionSourceUi() {
                     value = port,
                     onValueChange = { port = it },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.padding(end = 20.dp),
                     label = {
                         Text(
                             text = "Enter Port",

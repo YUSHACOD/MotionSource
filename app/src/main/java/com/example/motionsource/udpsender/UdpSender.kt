@@ -16,6 +16,7 @@ class UdpSender(
     init {
         try {
             socket = DatagramSocket()
+            socket?.soTimeout = 100
         } catch (e: java.net.SocketException) {
             println("Socket creation crash: " + e.printStackTrace().toString())
         }
@@ -39,6 +40,18 @@ class UdpSender(
             }
         }
     }
+
+//    suspend fun receiveData(): String {
+//        val packet = DatagramPacket(ByteArray(1024), 1024)
+//        withContext(Dispatchers.IO) {
+//            try {
+//                socket?.receive(packet)
+//            } catch (e: Exception) {
+//                println("Error receiving data: ${e.printStackTrace()}")
+//            }
+//        }
+//        return  packet.data.toString()
+//    }
 
     fun close() {
         socket?.close()
