@@ -5,5 +5,6 @@
     <style name="Theme.MotionSource.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/black</item>
         <item name="postSplashScreenTheme">@style/Theme.MotionSource</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ms_logo_animated</item>
     </style>
 </resources>

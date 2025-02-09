@@ -1,7 +1,10 @@
 package com.example.motionsource
 
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.view.animation.OvershootInterpolator
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -36,6 +39,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.animation.doOnEnd
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
@@ -50,6 +55,34 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        installSplashScreen().apply {
+            setOnExitAnimationListener { screen ->
+                val zoomX = ObjectAnimator.ofFloat(
+                    screen.iconView,
+                    View.SCALE_X,
+                    1.0f,
+                    0.0f
+                )
+                zoomX.interpolator = OvershootInterpolator()
+                zoomX.duration = 750L
+                zoomX.doOnEnd { screen.remove() }
+
+                val zoomY = ObjectAnimator.ofFloat(
+                    screen.iconView,
+                    View.SCALE_Y,
+                    1.0f,
+                    0.0f
+                )
+                zoomY.interpolator = OvershootInterpolator()
+                zoomY.duration = 750L
+                zoomY.doOnEnd { screen.remove() }
+
+                zoomX.start()
+                zoomY.start()
+            }
+        }
+
+
         enableEdgeToEdge()
         setContent {
             MotionSourceTheme {

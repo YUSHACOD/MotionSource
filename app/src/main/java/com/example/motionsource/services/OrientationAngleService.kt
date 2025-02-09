@@ -143,7 +143,7 @@ class OrientationAngleService: Service() {
         return NotificationCompat.Builder(this, "ORIENTATION_SERVICE_CHANNEL")
             .setContentTitle("Motion Source")
             .setContentText("Orientation service is running")
-            .setSmallIcon(R.mipmap.motion_source_icon)
+            .setSmallIcon(R.drawable.notification_icon)
             .build()
     }
 
