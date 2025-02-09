@@ -131,6 +131,7 @@ class OrientationAngleService: Service() {
                 buffer.putFloat(pitch)
                 buffer.putFloat(roll)
 
+                // println("x: $azimuth,y: $pitch,z: $roll")
                 udpSender.sendData(buffer.array())
 
                 delay(1)
@@ -142,7 +143,7 @@ class OrientationAngleService: Service() {
         return NotificationCompat.Builder(this, "ORIENTATION_SERVICE_CHANNEL")
             .setContentTitle("Motion Source")
             .setContentText("Orientation service is running")
-            .setSmallIcon(R.mipmap.motion_source_ico)
+            .setSmallIcon(R.mipmap.motion_source_icon)
             .build()
     }
 
