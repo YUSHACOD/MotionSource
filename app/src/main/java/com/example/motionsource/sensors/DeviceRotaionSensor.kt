@@ -44,12 +44,28 @@ class DeviceRotationSensor(context: Context): SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
         // Handle accuracy changes if needed
+        println("Accuracy changed: $accuracy")
     }
 
     init {
         rotationVectorSensor?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_FASTEST)
+            try {
+                sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+            } catch (e: Exception) {
+                println("[register listener: " + e.message + e.stackTrace)
+            }
         }
+    }
+
+    fun test() {
+        try {
+            val s: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+            println("[TESTING : " + s.toString())
+        } catch (e: Exception) {
+            println("test: " + e.message + e.stackTrace)
+        }
+        println("[AVAILABLE SENSORS:" + sensorManager.getSensorList(Sensor.TYPE_ALL))
+        println("[AVAILABLE SENSORS DYNAMIC:" + sensorManager.getDynamicSensorList(Sensor.TYPE_ALL))
     }
 
     fun getOrientationValues(): Triple<Float, Float, Float> {

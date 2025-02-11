@@ -25,9 +25,11 @@ class OrientationAngleService: Service() {
         const val ACTION_PAUSE = "ACTION_PAUSE"
         const val ACTION_RESUME = "ACTION_RESUME"
         const val ACTION_STOP = "ACTION_STOP"
+        const val ACTION_POLL_RATE_CHANGE = "ACTION_POLL_RATE_CHANGE"
 
         const val EXTRA_IP = "EXTRA_IP"
         const val EXTRA_PORT = "EXTRA_PORT"
+        const val EXTRA_POLL_RATE = "EXTRA_POLL_RATE"
     }
 
     private lateinit var context: Context
@@ -36,6 +38,8 @@ class OrientationAngleService: Service() {
     private lateinit var sensor: DeviceRotationSensor
     private lateinit var udpSender: UdpSender
     private var serviceJob: Job? = null
+    private var pollRate: Int = 125
+    private var pollDelay : Long = 1000 / pollRate.toLong()
     private var isPaused = true
     private var isCreated = false
 //    private var isConnected = false
@@ -59,6 +63,8 @@ class OrientationAngleService: Service() {
                     println("Action Start Called")
                     this.serverIp = intent.getStringExtra(EXTRA_IP) ?: "0.0.0.0"
                     this.serverPort = intent.getIntExtra(EXTRA_PORT, 42069)
+                    val pollRate = intent.getIntExtra(EXTRA_POLL_RATE, 125)
+                    setPollRate(pollRate)
                     this.context = this
                     isPaused = false
                 }
@@ -77,6 +83,9 @@ class OrientationAngleService: Service() {
                 udpSender.close()
                 stopSelf()
                 println("Action stop done")
+            }
+            ACTION_POLL_RATE_CHANGE -> {
+                setPollRate(intent.getIntExtra(EXTRA_POLL_RATE, 125))
             }
         }
 
@@ -98,6 +107,7 @@ class OrientationAngleService: Service() {
                 println("sensor/udp message : " + e.message + e.stackTrace)
             }
             isCreated = true
+            sensor.test()
             println("Service Created")
         }
 
@@ -134,9 +144,15 @@ class OrientationAngleService: Service() {
                 // println("x: $azimuth,y: $pitch,z: $roll")
                 udpSender.sendData(buffer.array())
 
-                delay(1)
+                delay(pollDelay)
+                // println("Polling Delay $pollDelay")
             }
         }
+    }
+
+    private fun setPollRate(pollRate: Int) {
+        this.pollRate = pollRate
+        pollDelay = 1000 / pollRate.toLong()
     }
 
     private fun buildNotification(): Notification {
@@ -163,17 +179,18 @@ class OrientationAngleService: Service() {
     }
 }
 
-fun startOrientationAngleService(context: Context, ip: String, port: String) {
+fun startOrientationAngleService(context: Context, ip: String, port: String, pollRate: Int) {
     println("Inside start service function")
-        val serviceIntent = Intent(context, OrientationAngleService::class.java).apply {
-            try {
-                this.action = OrientationAngleService.ACTION_START
-                putExtra(OrientationAngleService.EXTRA_IP, ip)
-                putExtra(OrientationAngleService.EXTRA_PORT, port.toInt())
-            } catch (e: Exception) {
-                println("serviceIntent exception: " + e.message + e.stackTrace)
-            }
+    val serviceIntent = Intent(context, OrientationAngleService::class.java).apply {
+        try {
+            this.action = OrientationAngleService.ACTION_START
+            putExtra(OrientationAngleService.EXTRA_IP, ip)
+            putExtra(OrientationAngleService.EXTRA_PORT, port.toInt())
+            putExtra(OrientationAngleService.EXTRA_POLL_RATE, pollRate)
+        } catch (e: Exception) {
+            println("serviceIntent exception: " + e.message + e.stackTrace)
         }
+    }
 
     try {
         context.startService(serviceIntent)
@@ -201,6 +218,15 @@ fun resumeOrientationAngleService(context: Context) {
 fun stopOrientationAngleService(context: Context) {
     val serviceIntent = Intent(context, OrientationAngleService::class.java).apply {
         this.action = OrientationAngleService.ACTION_STOP
+    }
+
+    context.startService(serviceIntent)
+}
+
+fun putPollRateInOrientationService(context: Context, pollRate: Int) {
+    val serviceIntent = Intent(context, OrientationAngleService::class.java).apply {
+        this.action = OrientationAngleService.ACTION_POLL_RATE_CHANGE
+        putExtra(OrientationAngleService.EXTRA_POLL_RATE, pollRate)
     }
 
     context.startService(serviceIntent)

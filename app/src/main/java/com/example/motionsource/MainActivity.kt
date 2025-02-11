@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -22,12 +23,16 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,9 +41,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.animation.doOnEnd
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.Lifecycle
@@ -46,11 +53,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.motionsource.sensors.DeviceRotationSensor
 import com.example.motionsource.services.pauseOrientationAngleService
+import com.example.motionsource.services.putPollRateInOrientationService
 import com.example.motionsource.services.resumeOrientationAngleService
 import com.example.motionsource.services.startOrientationAngleService
 import com.example.motionsource.services.stopOrientationAngleService
 import com.example.motionsource.ui.theme.MotionSourceTheme
 import java.util.Locale
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,6 +157,12 @@ fun MotionSourceUi() {
     var port by rememberSaveable { mutableStateOf("") }
     var isServicePaused by rememberSaveable { mutableStateOf(true) }
     var isServiceCreated by rememberSaveable { mutableStateOf(false) }
+    val pollRateMultiplier = 125f
+    val pollingRateIndexes = listOf(0f, 1f, 2f, 3f)
+    var pollingRateIndex by remember { mutableFloatStateOf(0f) }
+    val pollingRates = listOf(125, 250, 500, 1000)
+    var pollingRate by remember { mutableIntStateOf(pollingRates[pollingRateIndex.toInt()]) }
+
     val context = LocalContext.current
 
     ObserveAppLifecycle(owner = context as LifecycleOwner) { stopOrientationAngleService(context) }
@@ -202,10 +218,47 @@ fun MotionSourceUi() {
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            Slider(
+                value = pollingRateIndex,
+                onValueChange = { newValue ->
+                    pollingRateIndex = newValue.roundToInt().coerceIn(0, pollingRateIndexes.size - 1).toFloat()
+                    pollingRate = pollingRates[pollingRateIndex.toInt()]
+                    if (isServiceCreated) {
+                        putPollRateInOrientationService(context, pollingRate)
+                    }
+                },
+                valueRange = 0f..3f,
+                steps = 2,
+                modifier = Modifier.padding(start = 40.dp, end = 40.dp),
+                colors = SliderDefaults.colors(
+                    thumbColor = MaterialTheme.colorScheme.primary,
+                    activeTrackColor = MaterialTheme.colorScheme.primary,
+                    inactiveTrackColor = MaterialTheme.colorScheme.inversePrimary,
+                    disabledThumbColor = MaterialTheme.colorScheme.inversePrimary
+                ),
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                pollingRateIndexes.forEach { value ->
+                    val displayValue = (pollRateMultiplier * 2.0.pow(value.toDouble())).toInt()
+                    Text(
+                        text = displayValue.toString() + "hz",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
             Button(
                 onClick = {
                     if (!isServiceCreated) {
-                        startOrientationAngleService(context, ip, port)
+                        startOrientationAngleService(context, ip, port, pollingRate)
                         isServiceCreated = true
                         println("Service Created After")
                     }
