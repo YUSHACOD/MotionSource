@@ -53,6 +53,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.example.motionsource.sensors.DeviceRotationSensor
+import com.example.motionsource.sensors.Quaternion
 import com.example.motionsource.services.pauseOrientationAngleService
 import com.example.motionsource.services.putPollRateInOrientationService
 import com.example.motionsource.services.resumeOrientationAngleService
@@ -126,10 +127,17 @@ fun Title(name: String, modifier: Modifier = Modifier) {
 fun RotationDisplay(context: Context) {
     val sensor = remember { DeviceRotationSensor(context) }
     val rotationValues by sensor.rotationValues.collectAsState()
-    val (azimuth, pitch, roll) = rotationValues
+    val quaternion: Quaternion = rotationValues
 
     Text(
-        text = String.format(Locale.US, "X\t:\t%+3.6f\nY\t:\t%+3.6f\nZ\t:\t%+3.6f", azimuth, pitch, roll),
+        text = String.format(
+            Locale.US,
+            "W\t:\t%+3.6f\nX\t:\t%+3.6f\nY\t:\t%+3.6f\nZ\t:\t%+3.6f",
+            quaternion.w,
+            quaternion.x,
+            quaternion.y,
+            quaternion.z
+        ),
         style = MaterialTheme.typography.bodyLarge
     )
 }

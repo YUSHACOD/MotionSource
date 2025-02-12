@@ -8,35 +8,36 @@ import android.content.Context
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+data class Quaternion(val w: Float, val x: Float, val y: Float, val z: Float)
+
 class DeviceRotationSensor(context: Context): SensorEventListener {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val rotationVectorSensor: Sensor? = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
 
-    private var azimuth = 0f
-    private var pitch = 0f
-    private var roll = 0f
+    private var w = 0f
+    private var x = 0f
+    private var y = 0f
+    private var z = 0f
 
-    private val _rotationValues = MutableStateFlow(Triple(0f, 0f, 0f))
-    val rotationValues: StateFlow<Triple<Float, Float, Float>> get() = _rotationValues
+    private val _rotationValues = MutableStateFlow(Quaternion(0f, 0f, 0f, 0f))
+    val rotationValues: StateFlow<Quaternion> get() = _rotationValues
 
     override fun onSensorChanged(event: SensorEvent?) {
         event?.let {
             if (it.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
-                val rotationMatrix = FloatArray(9)
-                val orientationAngles = FloatArray(3)
+                val quaternionArray = FloatArray(4)
 
-                // Convert rotation vector to rotation matrix
-                SensorManager.getRotationMatrixFromVector(rotationMatrix, it.values)
 
-                // Compute orientation angles (Azimuth, Pitch, Roll)
-                SensorManager.getOrientation(rotationMatrix, orientationAngles)
+                // get Orientation Quaternion from rotation vector( it.values )
+                SensorManager.getQuaternionFromVector(quaternionArray, it.values)
 
-                azimuth = orientationAngles[0]
-                pitch = orientationAngles[1]
-                roll = orientationAngles[2]
+                w = quaternionArray[0]
+                x = quaternionArray[1]
+                y = quaternionArray[2]
+                z = quaternionArray[3]
 
-                _rotationValues.value = Triple(azimuth, pitch, roll)
+                _rotationValues.value = Quaternion(w, x, y, z)
             }
         }
 
@@ -68,8 +69,8 @@ class DeviceRotationSensor(context: Context): SensorEventListener {
         println("[AVAILABLE SENSORS DYNAMIC:" + sensorManager.getDynamicSensorList(Sensor.TYPE_ALL))
     }
 
-    fun getOrientationValues(): Triple<Float, Float, Float> {
-        return Triple(azimuth, pitch, roll)
+    fun getOrientationValues(): Quaternion {
+        return Quaternion(w, x, y, z)
     }
 
     // Unregister the listener when it's no longer needed

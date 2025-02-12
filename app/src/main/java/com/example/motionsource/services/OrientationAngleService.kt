@@ -10,6 +10,7 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.example.motionsource.R
 import com.example.motionsource.sensors.DeviceRotationSensor
+import com.example.motionsource.sensors.Quaternion
 import com.example.motionsource.udpsender.UdpSender
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -131,15 +132,16 @@ class OrientationAngleService: Service() {
 //    }
 
     private suspend fun sendRotationData() {
-        val buffer = ByteBuffer.allocate(12)
+        val buffer = ByteBuffer.allocate(16)
         while (true) {
             if (!isPaused) {
-                val (azimuth, pitch, roll) = sensor.getOrientationValues()
+                val quaternion: Quaternion = sensor.getOrientationValues()
 
                 buffer.clear()
-                buffer.putFloat(azimuth)
-                buffer.putFloat(pitch)
-                buffer.putFloat(roll)
+                buffer.putFloat(quaternion.w)
+                buffer.putFloat(quaternion.x)
+                buffer.putFloat(quaternion.y)
+                buffer.putFloat(quaternion.z)
 
                 // println("x: $azimuth,y: $pitch,z: $roll")
                 udpSender.sendData(buffer.array())
