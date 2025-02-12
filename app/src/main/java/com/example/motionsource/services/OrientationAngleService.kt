@@ -135,7 +135,7 @@ class OrientationAngleService: Service() {
         val buffer = ByteBuffer.allocate(16)
         while (true) {
             if (!isPaused) {
-                val quaternion: Quaternion = sensor.getOrientationValues()
+                val quaternion: Quaternion = sensor.getOrientation()
 
                 buffer.clear()
                 buffer.putFloat(quaternion.w)

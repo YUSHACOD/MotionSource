@@ -28,7 +28,6 @@ class DeviceRotationSensor(context: Context): SensorEventListener {
             if (it.sensor.type == Sensor.TYPE_ROTATION_VECTOR) {
                 val quaternionArray = FloatArray(4)
 
-
                 // get Orientation Quaternion from rotation vector( it.values )
                 SensorManager.getQuaternionFromVector(quaternionArray, it.values)
 
@@ -69,7 +68,7 @@ class DeviceRotationSensor(context: Context): SensorEventListener {
         println("[AVAILABLE SENSORS DYNAMIC:" + sensorManager.getDynamicSensorList(Sensor.TYPE_ALL))
     }
 
-    fun getOrientationValues(): Quaternion {
+    fun getOrientation(): Quaternion {
         return Quaternion(w, x, y, z)
     }
 
