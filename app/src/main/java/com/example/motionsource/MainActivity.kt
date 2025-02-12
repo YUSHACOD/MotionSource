@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -218,35 +219,49 @@ fun MotionSourceUi() {
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Slider(
-                value = pollingRateIndex,
-                onValueChange = { newValue ->
-                    pollingRateIndex = newValue.roundToInt().coerceIn(0, pollingRateIndexes.size - 1).toFloat()
-                    pollingRate = pollingRates[pollingRateIndex.toInt()]
-                    if (isServiceCreated) {
-                        putPollRateInOrientationService(context, pollingRate)
-                    }
-                },
-                valueRange = 0f..3f,
-                steps = 2,
-                modifier = Modifier.padding(start = 40.dp, end = 40.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = MaterialTheme.colorScheme.primary,
-                    activeTrackColor = MaterialTheme.colorScheme.primary,
-                    inactiveTrackColor = MaterialTheme.colorScheme.inversePrimary,
-                    disabledThumbColor = MaterialTheme.colorScheme.inversePrimary
-                ),
-            )
+            Row {
+                Text(
+                    text = "Poll Rate : ",
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = MaterialTheme.typography.bodyLarge.fontWeight,
+                    modifier = Modifier
+                        .padding(top = 5.dp, start = 20.dp)
+                )
+                Slider(
+                    value = pollingRateIndex,
+                    onValueChange = { newValue ->
+                        pollingRateIndex =
+                            newValue.roundToInt().coerceIn(0, pollingRateIndexes.size - 1).toFloat()
+                        pollingRate = pollingRates[pollingRateIndex.toInt()]
+                        if (isServiceCreated) {
+                            putPollRateInOrientationService(context, pollingRate)
+                        }
+                    },
+                    valueRange = 0f..3f,
+                    steps = 2,
+                    modifier = Modifier
+                        .size(width = 500.dp, height = 40.dp)
+                        .padding(start = 40.dp, end = 40.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = MaterialTheme.colorScheme.primary,
+                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                        inactiveTrackColor = MaterialTheme.colorScheme.inversePrimary,
+                        disabledThumbColor = MaterialTheme.colorScheme.inversePrimary
+                    ),
+                )
+            }
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .padding(start = 100.dp)
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 pollingRateIndexes.forEach { value ->
                     val displayValue = (pollRateMultiplier * 2.0.pow(value.toDouble())).toInt()
                     Text(
                         text = displayValue.toString() + "hz",
-                        fontSize = 14.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )

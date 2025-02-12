@@ -50,7 +50,7 @@ class DeviceRotationSensor(context: Context): SensorEventListener {
     init {
         rotationVectorSensor?.let {
             try {
-                sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME)
+                sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_FASTEST)
             } catch (e: Exception) {
                 println("[register listener: " + e.message + e.stackTrace)
             }
